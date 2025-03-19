@@ -1,0 +1,176 @@
+---
+title: "Data Visualization using ggplot2"
+author: "Beesan Alattal"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+# 1. Read the Data
+data(mtcars)
+data(iris)
+
+```
+
+
+```{r}
+# pie chart cyl and cars
+# Count the number of cars per cylinder category
+cyl_data <- mtcars %>%
+  count(cyl) %>%
+  mutate(perc = round(n / sum(n) * 100, 1))
+
+
+# Create the Pie Chart
+ggplot(cyl_data, aes(x = "", y = n, fill = factor(cyl))) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") + 
+  theme_void() +
+  labs(title = "Distribution of Cars by Cylinder Count", fill = "Cylinders") +
+  geom_text(aes(label = paste0(perc, "%")), position = position_stack(vjust = 0.5)) +
+  scale_fill_manual(values = c("#5F4B8B", "#8A5FBF", "#A67DB8"))
+```
+
+```{r}
+# bar plot carb and mtcars
+# Count the number of cars per carburetor type
+carb_data <- count(mtcars, carb)
+
+# Create bar plot with a single purple color
+ggplot(carb_data, aes(x = factor(carb), y = n)) +
+  geom_bar(stat = "identity", fill = "#5F4B8B", color = "black") +
+  scale_y_continuous(breaks = seq(0, max(carb_data$n), by = 1)) +
+  labs(title = "Count of Cars by Carburetor Type",
+       x = "Carburetor Type",
+       y = "Count of Cars") +
+  theme_minimal()
+
+```
+
+```{r}
+# stacked bar chart presenting 3 different features
+# Count the number of cars per gear and cylinder combination
+gear_cyl_data <- mtcars %>%
+  count(gear, cyl)
+
+# Create stacked bar plot
+ggplot(gear_cyl_data, aes(x = factor(gear), y = n, fill = factor(cyl))) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(breaks = seq(1, 15, by = 1)) +
+  scale_fill_manual(values = c("#5F4B8B", "#8A5FBF", "#A67DB8")) +
+  labs(title = "Count of Each Gear Type Segmented by Cylinders",
+       x = "Gear Type",
+       y = "Count of Cars",
+       fill = "Cylinders") +
+  theme_minimal()
+
+
+```
+
+```{r}
+# scatter plot to present the correlation 
+# Create scatter plot
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point(color = "#5F4B8B", size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", color = "black", se = FALSE) +
+  labs(title = "Scatter Plot of Weight vs MPG",
+       x = "Car Weight (1000 lbs)",
+       y = "Miles Per Gallon (MPG)") +
+  theme_minimal()
+
+```
+# here we are repeating the process but different plots choosing the best
+```{r}
+
+ggplot(mtcars, aes(x = wt, fill = "Weight")) +
+  geom_density(alpha = 0.5, color = "black") +
+  labs(title = "Density Plot of Car Weight", x = "Weight (1000 lbs)", y = "Density") +
+  theme_minimal() +
+  scale_fill_manual(values = "#5F4B8B")
+
+```
+```{r}
+# Compute correlation matrix
+cor_matrix <- cor(mtcars[, c("wt", "mpg")])
+
+# Convert matrix to a tidy format
+cor_data <- as.data.frame(cor_matrix) %>%
+  pivot_longer(cols = everything(), names_to = "Var2", values_to = "value") %>%
+  mutate(Var1 = rep(rownames(cor_matrix), times = ncol(cor_matrix)))
+
+# Create the heatmap
+ggplot(cor_data, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0) +
+  labs(title = "Heatmap of Correlation Between Variables", x = "", y = "") +
+  theme_minimal()
+
+```
+# The dot plot is the most suitable, showing clusters and some relations 
+```{r}
+# Dot Plot is the best choice, because it is showing some relations and the clusters and it does represent valuable insights.
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_dotplot(binaxis = 'y', stackdir = 'center', dotsize = 0.5, fill = "#5F4B8B") +
+  labs(title = "Dot Plot of Weight vs MPG",
+       x = "Weight (1000 lbs)",
+       y = "Miles Per Gallon (MPG)") +
+  theme_minimal()
+
+```
+```{r}
+ggplot(mtcars, aes(x = wt)) +
+  stat_ecdf(geom = "step", color = "#5F4B8B") +
+  labs(title = "ECDF of Car Weight",
+       x = "Weight (1000 lbs)",
+       y = "Cumulative Probability") +
+  theme_minimal()
+
+```
+```{r}
+ggplot(mtcars, aes(sample = wt)) +
+  geom_qq(color = "#5F4B8B") +
+  geom_qq_line() +
+  labs(title = "Q-Q Plot for Car Weight",
+       x = "Theoretical Quantiles",
+       y = "Sample Quantiles") +
+  theme_minimal()
+
+```
+# choosing the violin because it is the best of both worlds showing the outliers and the distrubution across the feature 
+
+```{r}
+
+# showing the outliers and the distribution at the same time
+# Create a violin plot for Sepal Length across Species
+ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
+  geom_violin(trim = FALSE, alpha = 0.7) +
+  scale_fill_manual(values = c("#5F4B8B", "#8A5FBF", "#A67DB8")) +
+  labs(title = "Violin Plot of Sepal Length Across Species",
+       x = "Species",
+       y = "Sepal Length (cm)",
+       fill = "Species") +
+  theme_minimal()
+```
+
+
+
+This report presents various visualizations to explore patterns within the `mtcars` and `iris` datasets using `ggplot2`:
+
+- **The pie chart** represents the **proportion of cylinder types** in the `mtcars` dataset.  
+- **The bar plot** displays the **count of different carburetor types**.  
+- **The stacked bar plot** compares how **gear types are distributed across cylinder categories**.  
+- **The scatter plot** highlights the **relationship between car weight (`wt`) and fuel efficiency (`mpg`)**.  
+- **The density plot** visualizes the **distribution of car weight**.  
+- **The heatmap** provides insights into **correlation intensity between variables**.  
+- **The violin plot** effectively demonstrates the **distribution of Sepal Length across different iris species**.
+
+
+
+
